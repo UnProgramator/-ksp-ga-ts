@@ -1,3 +1,7 @@
 .vs
 
 **/*.vcxproj*
+
+x64
+x86
+Debug
