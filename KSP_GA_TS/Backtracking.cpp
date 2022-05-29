@@ -72,7 +72,7 @@ void Backtracking::backtrack_alg(){
 			}
 		}
 		else {//we cannot add any more
-			check(v_sum,g_sum, index, i-1); //couldn't add the i'th item so it's not counted, so i-1
+			check(v_sum,g_sum, index, i); //couldn't add the i'th item so it's not counted, so i-1
 		}
 		
 	}
