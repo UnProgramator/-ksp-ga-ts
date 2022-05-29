@@ -18,6 +18,8 @@ public:
 
 	void read_data(std::istream& in);
 
+	void print(std::ostream& os);
+
 };
 
 extern KSP_DS ds8;
