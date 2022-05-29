@@ -2,6 +2,7 @@
 #include "KSP_DS.h"
 #include "Backtracking.h"
 #include "NeighborhoodSearch.h"
+#include "TabuSearch.h"
 
 void test(KSP_DS& ds) {
 	Backtracking bx(ds);
@@ -41,7 +42,17 @@ int main() {
 
 	std::cout << "\n\nNS:\n\n";
 
-	for (int i = 0; i < 10; i++) {
-		ns.execute_and_print(&ds8, std::cout);
+	/*for (int i = 0; i < 10; i++) {
+		ns.benchmark(&ds8, std::cout);
+	}*/
+
+	
+
+	for (int i = 0; i < 5; i++) {
+		TabuSearch ts(ds8);
+		auto sol = ts.execute();
+		sol.print();
+
+		std::cout << "--------------------\n\n";
 	}
 }
