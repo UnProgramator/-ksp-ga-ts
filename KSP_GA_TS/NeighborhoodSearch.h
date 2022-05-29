@@ -21,6 +21,6 @@ public:
 
 	unsigned int* getSolution(const KSP_DS* dataSet);
 
-	void execute_and_print(const KSP_DS* dataSet, std::ostream&);
+	void benchmark(const KSP_DS* dataSet, std::ostream&);
 };
 

@@ -62,7 +62,7 @@ unsigned int* NeighborhoodSearch::getSolution(const KSP_DS* dataSet)
 	return solution;
 }
 
-void NeighborhoodSearch::execute_and_print(const KSP_DS* dataSet, std::ostream& outStream)
+void NeighborhoodSearch::benchmark(const KSP_DS* dataSet, std::ostream& outStream)
 {
 	auto start_timepoint = std::chrono::high_resolution_clock::now();
 
