@@ -3,6 +3,7 @@
 #include "Backtracking.h"
 #include "NeighborhoodSearch.h"
 #include "TabuSearch.h"
+#include "GeneticAlgorithm.h"
 
 void test(KSP_DS& ds) {
 	Backtracking bx(ds);
@@ -55,4 +56,25 @@ int main() {
 
 		std::cout << "--------------------\n\n";
 	}
+
+	GeneticAlgorithm ga(ds8, 10);
+
+	for (int j = 0; j < 5; j++) {
+
+		auto result = ga.execute(5);
+
+		KSP_DS::weight_type g = 0, v = 0;
+
+		for (int i = 0; i < 8; i++) {
+			std::cout << result[i] << " ";
+			if (result[i]) {
+				g += ds8.g[i];
+				v += ds8.v[i];
+			}
+		}
+		std::cout << " g: " << g << " v = " << v << "\n";
+
+		delete[] result;
+	}
+	return 0;
 }

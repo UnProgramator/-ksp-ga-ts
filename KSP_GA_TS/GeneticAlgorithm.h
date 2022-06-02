@@ -5,14 +5,37 @@
 class GeneticAlgorithm
 {
 public:
-	GeneticAlgorithm(const KSP_DS& dataSet, unsigned int populationSize);
+	GeneticAlgorithm(const KSP_DS& dataSet, unsigned int populationSize, int crossoverProbabilty = 60, int mutationProbabilty = 10);
 	GeneticAlgorithm() = delete;
 	~GeneticAlgorithm();
 
-	int* execute(int loops = 0);
-	std::pair<int*, double> benchmark(int loops = 0);
+	std::pair<unsigned*, double> benchmark(int loops = 0);
+	unsigned* execute(int loops = 0);
 
 private:
+	void initPopulation();
+	void selection();
+	void recombination();
+	void mutation();
+
+	int fitnessFunction(unsigned int*);
+
+	int applyFitnessFunction();
+
+	KSP_DS::weight_type getBestG();
+
+	inline bool tossTheCoin(int probability) {
+		return (rand() % 100) < probability;
+	}
+
+	inline int getRandomInRange(int mn, int mx) {
+		return rand() % (mx - mn) + mn;
+	}
+
+	inline int getRandomInRange(int mx) {
+		return rand() % mx;
+	}
+
 	unsigned int** P;
 	unsigned int** Pp;
 	int* fitness;
@@ -20,17 +43,11 @@ private:
 	const unsigned int n;
 	const KSP_DS& dataset;
 
-	int newFiness = 0, oldFitness = 0;
+	const int crossoverProbabilty;
+	const int mutationProbabilty;
 
-	struct { unsigned* best; int fitnessOfTheBest; } best;
+	int generationFitness = 0, oldFitness = 0;
 
-	void initPopulation();
-	int fitnessFunction(unsigned int*);
-
-	int applyFitnessFunction();
-	inline bool tossTheCoin(int probability) {
-		return (rand() % 100) < probability;
-	}
-	KSP_DS::weight_type getBestG();
+	struct { unsigned* best = nullptr; int fitnessOfTheBest =0; } best;
 };
 
