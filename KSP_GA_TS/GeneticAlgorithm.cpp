@@ -1,6 +1,7 @@
 #include "GeneticAlgorithm.h"
 #include <chrono>
 #include <iostream>
+#include <ctime>
 
 GeneticAlgorithm::GeneticAlgorithm(const KSP_DS& dataSet, unsigned int populationSize, int crossoverProbabilty, int mutationProbabilty):
 	dataset{dataSet},
@@ -30,7 +31,13 @@ GeneticAlgorithm::~GeneticAlgorithm() {
 
 #define compy_toBest()\
 memcpy(best.best, P[bestFittedIndex], L * sizeof(best.best[0]));\
-best.fitnessOfTheBest = fitness[bestFittedIndex]
+best.fitnessOfTheBest = fitnessFunction(P[bestFittedIndex]);
+//std::cout<< best.fitnessOfTheBest << " -> ";\
+//for(int i=0; i<L; i++)\
+//	std::cout << best.best[i];\
+//std::cout << "\n"
+
+
 
 std::pair<unsigned*, double> GeneticAlgorithm::benchmark(int loops)
 {
@@ -58,13 +65,15 @@ unsigned* GeneticAlgorithm::execute(const int loops)
 
 	int iteration = 0;
 
-	while (iteration < loops || (getBestG() > dataset.G && iteration < loops + 100)) {
+	auto start = std::clock();
+
+	while (iteration < loops 
+			|| (getBestG() > dataset.G && (std::clock() - start < CLOCKS_PER_SEC * 120)) //30 seconds timeout
+		) {
 		//get next get
 		selection();
 
-		recombination();
-
-		mutation();
+		process();
 
 		std::swap(P, Pp); // we swap them so we do not have to copy them again, for performance; the only advantage to have * :))
 
@@ -72,7 +81,7 @@ unsigned* GeneticAlgorithm::execute(const int loops)
 		bestFittedIndex = applyFitnessFunction();
 
 		//if bettern than the best, then become the best
-		if (best.fitnessOfTheBest < fitness[bestFittedIndex]) {
+		if (best.fitnessOfTheBest < fitnessFunction(P[bestFittedIndex])) { //if the new fittest is fitter than the fittest from the current generation, then it changes, else no
 			compy_toBest();
 		}
 		iteration++;
@@ -85,17 +94,17 @@ void GeneticAlgorithm::initPopulation()
 {
 	for (unsigned i = 0; i < n; i++)
 		for (unsigned j = 0; j < L; j++)
-			P[i][j] = rand() & 1; // get if the last bite is 1
+			P[i][j] = rand() & 1; // get if the last bite is 1 50% chance
 }
 
 void GeneticAlgorithm::selection()
 {
-	std::cout << generationFitness << " --- ";
+	//std::cout << generationFitness << " --- ";
 	//Pp ~ S'
 	for (unsigned int i = 0; i < n; i++) {
 		auto result = getRandomInRange(generationFitness);
 
-		int j = 0;
+		unsigned int j = 0;
 		while (result - fitness[j] > 0) result -= fitness[j++]; //turn the rullete; j will hold the result
 																//if j will result the last, result - fitness[n-1] will == 0
 		if (j >= n) j = n - 1;
@@ -103,26 +112,52 @@ void GeneticAlgorithm::selection()
 	}
 }
 
-void GeneticAlgorithm::recombination()
+void GeneticAlgorithm::process()
 {
 	//Pp ~ S' and P ~ S''
 	int* temp = new int [dataset.N];
-	for (unsigned int i = 0; i < n/2; i++) {
-		if (tossTheCoin(crossoverProbabilty)) { // do a crossover
-			int point = getRandomInRange(2, n - 3); // minimum 2 at left or write, so it doesn't swapp
-			memcpy(temp, Pp[2 * i] + point, (L - point) * sizeof(Pp[0][0]));
-			memcpy(Pp[2 * i] + point, Pp[2 * i] + point + 1, (L - point) * sizeof(Pp[0][0]));
-			memcpy(Pp[2 * i] + point + 1, temp, (L - point) * sizeof(Pp[0][0]));
+	unsigned index = n+1;
+	for (unsigned int i = 0; i < n; i++) {
+
+		auto probability = getRandomInRange(100);
+
+		if (probability < crossoverProbabilty) { //choose crosover for crt individual
+			if (index == n + 1) {// first individual chosen for crossover
+				index = i; 
+			}
+			else { // second individual chosen for crossover => do crossover
+				int point = getRandomInRange(2, L - 3); // minimum 2 at left or write, so it doesn't swapp
+				memcpy(temp, Pp[i] + point, (L - point) * sizeof(Pp[0][0]));
+				memcpy(Pp[i] + point, Pp[index] + point, (L - point) * sizeof(Pp[0][0]));
+				memcpy(Pp[index] + point, temp, (L - point) * sizeof(Pp[0][0]));
+
+				//give the chance to also get a mutation after crossover
+				/*if (tossTheCoin(mutationProbabilty)) {
+					mutation(Pp[i]);
+				}
+				if (tossTheCoin(mutationProbabilty)) {
+					mutation(Pp[index]);
+				}*/
+				index = n + 1;
+			}
 		}
+		else if (probability - crossoverProbabilty < mutationProbabilty) { //else if we choose mutation
+			mutation(Pp[i]);
+		}
+		//esle is copy
 	}
 }
 
-void GeneticAlgorithm::mutation()
+void GeneticAlgorithm::mutation(unsigned* ind)
 {
-	for (unsigned int i = 0; i < n ; i++) {
-		for (unsigned int j = 0; j < L; j++) {
-			if (tossTheCoin(mutationProbabilty))
-				Pp[i][j] = Pp[i][j] ? 0 : 1;
+	int probability = mutationProbabilty / 2; // first value
+	for (unsigned int j = 0; j < L; j++) {
+		if (tossTheCoin(mutationProbabilty)) {
+			ind[j] = ind[j] ? 0 : 1;
+			probability = mutationProbabilty / 2; //each time a mutation occures, I reset the probability
+		}
+		else {
+			probability += mutationProbabilty / 2; //to ensure that at least one value is mutated, each time a mutation does not occure, I make the probability bigger
 		}
 	}
 }
@@ -132,18 +167,19 @@ int GeneticAlgorithm::fitnessFunction(unsigned int* ent)
 	KSP_DS::weight_type v =0 , g = 0;
 
 	for (unsigned i = 0; i < L; i++) {
-		if (ent[i] /*== 1*/) {
+		if (ent[i]) {
 			v += dataset.v[i];
 			g += dataset.g[i];
 		}
 	}
 
-	int retVal = ((int)v) - ((int)g);
+	int retVal;
 
 	if (g > dataset.G)
-		retVal -= ((int)(g - dataset.G) << 1); //if we add to much weight, the fitness must be lower the fitnes with that ammout, taken twice
-		//retVal -= ((int)g - dataset.G)<<2; // version 2 : four time the amount it overweights
-	
+		retVal = ((int)v) - ((int)g);
+	else
+		retVal = int(((int)v * v) - ((int)g) - ((int)dataset.G - g));
+
 	return retVal;
 }
 
@@ -160,13 +196,15 @@ int GeneticAlgorithm::applyFitnessFunction()
 		}
 		if (fitness[bestFitted] < fitness[i])
 			bestFitted = i;
+		generationFitness += fitness[i];
 	}
 
-	min = -min;
+	if (min < 0) {
+		min = -min + 1;
 
-	for (unsigned i = 0; i < n; i++) { //move the fitnes form [-inf, inf] to [1, inf]; the negative fitness could result in problems, as well as 0
-		fitness[i] += min+1;
-		generationFitness += fitness[i];
+		for (unsigned i = 0; i < n; i++) { //move the fitnes form [-inf, inf] to [1, inf]; the negative fitness could result in problems, as well as 0
+			fitness[i] += min;
+		}
 	}
 
 	return bestFitted;

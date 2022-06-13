@@ -75,16 +75,16 @@ void NeighborhoodSearch::benchmark(const KSP_DS* dataSet, std::ostream& outStrea
 
 	auto duration = (end_us - start_us) * 0.000001; // convert from nanosecond to millisecond, * 10^-6
 
-	outStream << "Duration: " << duration << "\n";
+	outStream << "DS" << dataSet->N << "\nDuration: " << duration << "\n";
 	
 	KSP_DS::weight_type weight = 0, value = 0;
-	for (int i = 0; i < 8; i++) {
-		outStream << sol[i] << " ";
+	for (unsigned int i = 0; i < dataSet->N; i++) {
 		if (sol[i]) {
-			weight += ds8.g[i];
-			value += ds8.v[i];
+			outStream << i << " ";
+			weight += dataSet->g[i];
+			value += dataSet->v[i];
 		}
 	}
-	outStream << "\nWith weight=" << weight << " and value=" << value << "\n";
+	outStream << "\nWith weight=" << weight << " and value=" << value << "\n\n";
 }
 

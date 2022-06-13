@@ -34,11 +34,13 @@ public:
 	solution execute(unsigned int max_iterations = 0, unsigned int tenure = 0);
 	std::pair<solution, double> benchmark(unsigned int max_iterations, unsigned int tenure = 0);
 
+	const KSP_DS& dataSet;
+
 private:
 	solution Sbest;
 	solution S;
 	solution Snext;
-	const KSP_DS& dataSet;
+	
 	std::list<std::pair<unsigned, unsigned>> tabus;
 	unsigned tenure;
 

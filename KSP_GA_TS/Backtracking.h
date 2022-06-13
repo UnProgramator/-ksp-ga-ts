@@ -7,6 +7,7 @@ class Backtracking {
 	long double duration = -1;
 
 	uint64_t max_value = 0; // in principle we do not have items with value 0, all items have at least the value 1 (for price)
+	uint64_t added_g = 0;
 	int* items;
 	unsigned int occupied;
 

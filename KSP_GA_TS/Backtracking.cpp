@@ -32,7 +32,7 @@ void Backtracking::print_values(std::ostream& f)
 	for (unsigned int i = 0; i < occupied; i++) {
 		f << items[i] << " ";
 	}
-	f << "\n" << "Value = " << max_value << "\n";
+	f << "\n" << "Value = " << max_value << " Weight = " << added_g << "\n";
 	f.flush();
 }
 
@@ -90,8 +90,11 @@ bool Backtracking::check(uint64_t added_v, uint64_t total_g, int* combination, u
 #endif // on_DEBUG_bk
 
 
-	if (added_v > this->max_value) {
+	if (added_v > this->max_value || //more valuable
+		added_v == this->max_value && total_g < added_g // same value but lighter
+		) {
 		max_value = added_v;
+		added_g = total_g;
 		memcpy(items, combination, array_size * sizeof(unsigned int));
 		occupied = array_size;
 	}

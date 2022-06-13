@@ -5,7 +5,7 @@
 class GeneticAlgorithm
 {
 public:
-	GeneticAlgorithm(const KSP_DS& dataSet, unsigned int populationSize, int crossoverProbabilty = 60, int mutationProbabilty = 10);
+	GeneticAlgorithm(const KSP_DS& dataSet, unsigned int populationSize, int crossoverProbabilty, int mutationProbabilty);
 	GeneticAlgorithm() = delete;
 	~GeneticAlgorithm();
 
@@ -15,8 +15,8 @@ public:
 private:
 	void initPopulation();
 	void selection();
-	void recombination();
-	void mutation();
+	void process();
+	void mutation(unsigned* individual);
 
 	int fitnessFunction(unsigned int*);
 
@@ -39,7 +39,7 @@ private:
 	unsigned int** P;
 	unsigned int** Pp;
 	int* fitness;
-	const unsigned int& L;
+	const unsigned int L;
 	const unsigned int n;
 	const KSP_DS& dataset;
 

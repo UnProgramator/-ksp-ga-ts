@@ -10,7 +10,7 @@ struct move {
 	KSP_DS::weight_type new_value = 0;
 };
 
-TabuSearch::TabuSearch(const KSP_DS& data_set): dataSet{ data_set }, Sbest(data_set.N), S(data_set.N), Snext(data_set.N)
+TabuSearch::TabuSearch(const KSP_DS& data_set): dataSet{ data_set }, Sbest(data_set.N), S(data_set.N), Snext(data_set.N), tenure(0)
 {
 }
 
@@ -34,7 +34,7 @@ std::pair<solution,double> TabuSearch::benchmark(unsigned int max_iterations, un
 {
 	auto start_timepoint = std::chrono::high_resolution_clock::now();
 
-	auto sol = execute(max_iterations);
+	auto sol = execute(max_iterations, tenure);
 
 	auto end_timepoint = std::chrono::high_resolution_clock::now();
 
@@ -51,7 +51,9 @@ void TabuSearch::genStartSolution()
 	unsigned int i = 0;
 	bool k = true;
 
-
+	S.weight = 0;
+	S.value = 0;
+	S.solution_limit = 0;
 
 	while (i < dataSet.N) {
 		yesIditThis_genStartSolution:
